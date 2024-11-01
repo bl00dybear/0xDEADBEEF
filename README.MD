@@ -100,7 +100,7 @@
     • keeps tab of function parameters and local variables
 ```
 
-### How does code execute?
+## How does code execute?
 
 ```Machine code is a low-level programming language consisting of binary instructions that a computer's CPU can execute directly.```
 
@@ -110,16 +110,34 @@
 | 00 00 48 89 c7 e8 f0 fe ff |      (x64) that print “Hello, word!"
 | ff b8 00 00 00 00 5d c3    |      to standard output.
 +----------------------------+
+```
+### Now a good question is "Where the machine code comes from?"
 
-   +----------------------+                    +------------------------+
-   | 55                   |  Instructions in   | push rbp               |
-   | 48 89 e5             |  x64 assembly      | mov rbp, rsp           |
-   | 48 8d 05 ac 0e 00 00 |              \\    | lea rax, [rip+0xeac]   |
-   | 48 89 c7             |   ============\\   | mov rdi, rax           |
-   | e8 f0 fe ff ff       |   ============//   | call 1050 <puts@plt>   |
-   | b8 00 00 00 00       |              //    | mov eax, 0x0           |
-   | 5d                   |  that print        | pop rbp                |
-   | c3                   |  “Hello, world!”   | ret                    |
-   +----------------------+  to the console    +------------------------+
+```
+                          From C code to execution
+
+This is what processor execute                   The same but human readable
+   +----------------------+                      +------------------------+
+   | 55                   |    Instructions in   | push rbp               |
+   | 48 89 e5             |    x64 assembly      | mov rbp, rsp           |
+   | 48 8d 05 ac 0e 00 00 |    //          \\    | lea rax, [rip+0xeac]   |
+   | 48 89 c7             |   //============\\   | mov rdi, rax           |
+   | e8 f0 fe ff ff       |   \\============//   | call 1050 <puts@plt>   |
+   | b8 00 00 00 00       |    \\          //    | mov eax, 0x0           |
+   | 5d                   |    that print        | pop rbp                |
+   | c3                   |    “Hello, world!”   | ret                    |
+   +----------------------+    to the console    +------------------------+
+
+
+  +------------------------+
+  | push rbp               |
+  | mov rbp, rsp           |      Compiling     +---------------------------+
+  | lea rax, [rip+0xeac]   |   //               | int main(){               |
+  | mov rdi, rax           |  //==============  |     puts("Hello, world!");|
+  | call 1050 <puts@plt>   |  \\==============  |     return 0;             |
+  | mov eax, 0x0           |   \\               | }                         |
+  | pop rbp                |      process       +---------------------------+
+  | ret                    |
+  +------------------------+
 
 ```
