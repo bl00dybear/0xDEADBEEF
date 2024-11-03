@@ -134,6 +134,7 @@ one model, and the many-to-many model.
 |            kernel threads         |
 +-----------------------------------+
 
+
 One variation on the many-to-many model still multiplexes many user-level threads to a 
 smaller or equal number of kernel threads but also allows a user-level thread to be bound
 to a kernel thread. This variation is sometimes referred to as the two-level model.
@@ -143,5 +144,26 @@ to a kernel thread. This variation is sometimes referred to as the two-level mod
 
 Before we proceed with our examples of thread creation, we introduce two general strategies for creating multiple threads: ```asynchronous threading``` and ```synchronous threading```. With ```asynchronous threading```, once the parent creates a child thread, the parent resumes its execution, so that the parent and child execute concurrently and independently of one another. Because the threads are independent, there is typically little data sharing between them. ```Asynchronous threading``` is the strategy used in the multithreaded server and is also commonly used for designing responsive user interfaces.
 
+```Synchronous threading``` occurs when the parent thread creates one or more children and then must wait for all of its children to terminate before it resumes. Here, the threads created by the parent perform work concurrently, but the parent cannot continue until this work has been completed. Once each thread has finished its work, it terminates and joins with its parent. Only after all of the children have joined can the parent resume execution. Typically, synchronous threading involves significant data sharing among threads. For example, the parent thread may combine the results calculated by its various children.
 
+### Implicit Threading
+
+Implicit threading is a technique where the runtime system automatically manages the creation, scheduling, and synchronization of threads, allowing the programmer to express parallelism without manually handling threads.
+
+1. Thread Pools
+```
+The general idea behind a thread pool is to create a number of threads at start-up and
+place them into a pool, where they sit and wait for work. When a server receives a 
+request, rather than creating a thread, it instead submits the request to the thread pool 
+and resumes waiting for additional requests. If there is an available thread in the pool, 
+it is awakened, and the request is serviced immediately. If the pool contains no 
+available thread, the task is queued until one becomes free. Once a thread completes its 
+service, it returns to the pool and awaits more work. Thread pools work well when the 
+tasks submitted to the pool can be executed asynchronously.
+
+```
+2. Fork Join
+```
+
+```
 
