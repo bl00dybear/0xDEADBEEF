@@ -49,3 +49,87 @@ used to display the kernel threads on a running Linux system. Examining the
 output of this command will show the kernel thread kthreadd (with pid = 2),
 which serves as the parent of all other kernel threads.
 
+### Mutithreadinf Models
+
+Support for threads may be provided either at the user level, for ```user threads```, or by the kernel, for ```kernel threads```. User threads are supported above the kernel and
+are managed without kernel support, whereas kernel threads are supported
+and managed directly by the operating system. Ultimately, a relationship must exist between user threads and kernel threads. In this section, we look at three common
+ways of establishing such a relationship: the many-to-one model, the one-to-
+one model, and the many-to-many model.
+```
+                                      Many-to-One Model
++-----------------------------------+
+|             user threads          |
+|     /        /       /        /   |
+|    (        (       (        (    |
+|     \        \       \        \   |        The many-to-one model maps many user-level
+|      )        )       )        )  |        threads to one kernel thread. Thread 
+|     /        /       /        /   |        management is done by the library in user
+|    (        (       (        (    |        space, so it is efficient.
+|     \        \       \        \   |
+|___________________________________|        However, the entire process will block if a 
+|                 ||                |        thread makes a blocking system call.
+|                 \/                |
+|___________________________________|        Also, because only one thread can access
+|                                   |        the kernel at a time, multiple threads are 
+|                  /                |        unable to run in parallel on multicore 
+|                 (                 |        systems.
+|                  \                |
+|                   )               |
+|                  /                |
+|                 (                 |
+|                  \                |
+|            kernel threads         |
++-----------------------------------+
+ ```
+ ```
+                                       One-to-One Model
++-----------------------------------+
+|             user threads          |
+|     /        /       /        /   |
+|    (        (       (        (    |
+|     \        \       \        \   |        The one-to-one model maps each user thread 
+|      )        )       )        )  |        to a kernel thread. It provides more
+|     /        /       /        /   |        concurrency than the many-to-one model by 
+|    (        (       (        (    |        allowing another 
+|     \        \       \        \   |
+|___________________________________|
+|     ||       ||      ||       ||  |
+|     \/       \/      \/       \/  |
+|___________________________________|
+|                                   |
+|     /        /       /        /   |
+|    (        (       (        (    |
+|     \        \       \        \   |
+|      )        )       )        )  |
+|     /        /       /        /   |
+|    (        (       (        (    |
+|     \        \       \        \   |
+|            kernel threads         |
++-----------------------------------+
+```
+```
++-----------------------------------+
+|             user threads          |
+|     /        /       /        /   |
+|    (        (       (        (    |
+|     \        \       \        \   |
+|      )        )       )        )  |
+|     /        /       /        /   |
+|    (        (       (        (    |
+|     \        \       \        \   |
+|___________________________________|
+|         ||       ||      ||       |
+|         \/       \/      \/       |
+|___________________________________|
+|                                   |
+|         /        /       /        |
+|        (        (       (         |
+|         \        \       \        |
+|          )        )       )       |
+|         /        /       /        |
+|        (        (       (         |
+|         \        \       \        |
+|            kernel threads         |
++-----------------------------------+
+```
