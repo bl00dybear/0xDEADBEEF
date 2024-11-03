@@ -151,17 +151,9 @@ Before we proceed with our examples of thread creation, we introduce two general
 Implicit threading is a technique where the runtime system automatically manages the creation, scheduling, and synchronization of threads, allowing the programmer to express parallelism without manually handling threads.
 
 1. Thread Pools
-```
-The general idea behind a thread pool is to create a number of threads at start-up and
-place them into a pool, where they sit and wait for work. When a server receives a 
-request, rather than creating a thread, it instead submits the request to the thread pool 
-and resumes waiting for additional requests. If there is an available thread in the pool, 
-it is awakened, and the request is serviced immediately. If the pool contains no 
-available thread, the task is queued until one becomes free. Once a thread completes its 
-service, it returns to the pool and awaits more work. Thread pools work well when the 
-tasks submitted to the pool can be executed asynchronously.
 
-```
+The general idea behind a thread pool is to create a number of threads at start-up and place them into a pool, where they sit and wait for work. When a server receives a  request, rather than creating a thread, it instead submits the request to the thread pool  and resumes waiting for additional requests. If there is an available thread in the pool, it is awakened, and the request is serviced immediately. If the pool contains no  available thread, the task is queued until one becomes free. Once a thread completes its  service, it returns to the pool and awaits more work. Thread pools work well when the  tasks submitted to the pool can be executed asynchronously.
+
 2. Fork Join
 ```
 
