@@ -152,10 +152,43 @@ Implicit threading is a technique where the runtime system automatically manages
 
 1. Thread Pools
 
-The general idea behind a thread pool is to create a number of threads at start-up and place them into a pool, where they sit and wait for work. When a server receives a  request, rather than creating a thread, it instead submits the request to the thread pool  and resumes waiting for additional requests. If there is an available thread in the pool, it is awakened, and the request is serviced immediately. If the pool contains no  available thread, the task is queued until one becomes free. Once a thread completes its  service, it returns to the pool and awaits more work. Thread pools work well when the  tasks submitted to the pool can be executed asynchronously.
+   The general idea behind a thread pool is to create a number of threads at start-up and place them into a pool, where they sit and wait for work. When a server receives a  request, rather than creating a thread, it instead submits the request to the thread pool  and resumes waiting for additional requests. If there is an available thread in the pool, it is awakened, and the request is serviced immediately. If the pool contains no  available thread, the task is queued until one becomes free. Once a thread completes its  service, it returns to the pool and awaits more work. Thread pools work well when the  tasks submitted to the pool can be executed asynchronously.
 
 2. Fork Join
-```
 
-```
+   In Fork Join strategy, the main parent thread creates (forks) one or more child threads and then waits for the children to terminate and join with it, at which point it can retrieve and combine their results. This synchronous model is often characterized as explicit thread creation, but it is also an excellent candidate for implicit threading. In the latter situation, threads are not constructed directly during the fork stage; rather, parallel tasks are designated. A library manages the number of threads that are created and is also responsible for assigning tasks to threads. In some ways, this fork-join model is a synchronous version of thread pools in which a library determines the actual number of threads to create
 
+3. OpenMP
+
+   OpenMP is a set of compiler directives as well as an API for programs written in C, C++, or FORTRAN that provides support for parallel programming in shared- memory environments. OpenMP identifies parallel regions as blocks of code that may run in parallel. Application developers insert compiler directives into their code at parallel regions, and these directives instruct the OpenMP run-time library to execute the region in parallel. The following C program illus- trates a compiler directive above the parallel region containing the printf() statement:
+   ```
+   #include <omp.h>
+   #include <stdio.h>
+   int main(int argc, char *argv[])
+   {
+      /* sequential code */
+      #pragma omp parallel
+      {
+      printf("I am a parallel region.");
+      }
+      /* sequential code */
+   }
+   return 0;
+   ```
+   When OpenMP encounters the directive ```#pragma omp parallel``` it creates as many threads as there are processing cores in the system. Thus, for a dual-core system, two threads are created; for a quad-core system, four are created; and so forth. All the threads then simultaneously execute the parallel region. As each thread exits the parallel region, it is terminated.
+
+   ```
+   #pragma omp parallel for
+   //parallelizing for loop
+   for (i = 0; i < N; i++) {
+      c[i] = a[i] + b[i];
+   }
+   ```
+
+4. Grand Central Dispatch
+
+   Grand Central Dispatch (GCD) is a technology developed by Apple for its macOS and iOS operating systems. It is a combination of a run-time library, an API, and language extensions that allow developers to identify sections of code (tasks) to run in parallel. Like OpenMP, GCD manages most of the details of threading. GCD schedules tasks for run-time execution by placing them on a dispatch queue. When it removes a task from a queue, it assigns the task to an available thread from a pool of threads that it manages.
+
+5. Intel Thread Building Blocks
+
+   Intel threading building blocks (TBB) is a template library that supports designing parallel applications in C++. As this is a library, it requires no special compiler or language support. Developers specify tasks that can run in parallel, and the TBB task scheduler maps these tasks onto underlying threads. Furthermore, the task scheduler provides load balancing and is cache aware, meaning that it will give precedence to tasks that likely have their data stored in cache memory and thus will execute more quickly. TBB provides a rich set of features, including templates for parallel loop structures, atomic operations, and mutual exclusion locking. In addition, it provides concurrent data structures, including a hash map, queue, and vector, which can serve as equivalent thread-safe versions of the C++ standard template library data structures
