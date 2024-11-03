@@ -138,3 +138,10 @@ One variation on the many-to-many model still multiplexes many user-level thread
 smaller or equal number of kernel threads but also allows a user-level thread to be bound
 to a kernel thread. This variation is sometimes referred to as the two-level model.
 ```
+
+### Thread Libraries
+
+Before we proceed with our examples of thread creation, we introduce two general strategies for creating multiple threads: ```asynchronous threading``` and ```synchronous threading```. With ```asynchronous threading```, once the parent creates a child thread, the parent resumes its execution, so that the parent and child execute concurrently and independently of one another. Because the threads are independent, there is typically little data sharing between them. ```Asynchronous threading``` is the strategy used in the multithreaded server and is also commonly used for designing responsive user interfaces.
+
+
+
