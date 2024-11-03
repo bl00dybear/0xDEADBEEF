@@ -49,7 +49,7 @@ used to display the kernel threads on a running Linux system. Examining the
 output of this command will show the kernel thread kthreadd (with pid = 2),
 which serves as the parent of all other kernel threads.
 
-### Mutithreadinf Models
+### Mutithreading Models
 
 Support for threads may be provided either at the user level, for ```user threads```, or by the kernel, for ```kernel threads```. User threads are supported above the kernel and
 are managed without kernel support, whereas kernel threads are supported
@@ -86,50 +86,53 @@ one model, and the many-to-many model.
                                        One-to-One Model
 +-----------------------------------+
 |             user threads          |
-|     /        /       /        /   |
-|    (        (       (        (    |
-|     \        \       \        \   |        The one-to-one model maps each user thread 
-|      )        )       )        )  |        to a kernel thread. It provides more
-|     /        /       /        /   |        concurrency than the many-to-one model by 
-|    (        (       (        (    |        allowing another 
-|     \        \       \        \   |
-|___________________________________|
-|     ||       ||      ||       ||  |
-|     \/       \/      \/       \/  |
-|___________________________________|
-|                                   |
-|     /        /       /        /   |
-|    (        (       (        (    |
-|     \        \       \        \   |
-|      )        )       )        )  |
-|     /        /       /        /   |
-|    (        (       (        (    |
-|     \        \       \        \   |
-|            kernel threads         |
+|     /        /       /        /   |        The one-to-one model maps each user thread
+|    (        (       (        (    |        to a kernel thread. It provides more
+|     \        \       \        \   |        concurrency than the many-to-one model by 
+|      )        )       )        )  |        allowing another thread to run when a
+|     /        /       /        /   |        thread makes a blocking system call.
+|    (        (       (        (    |         
+|     \        \       \        \   |        It also allows multiple threads to run in
+|___________________________________|        parallel on multiprocessors.
+|     ||       ||      ||       ||  |         
+|     \/       \/      \/       \/  |        The only drawback on this model is that
+|___________________________________|        creating a user thread requires creating
+|                                   |        the corresponding kernel thread, and a
+|     /        /       /        /   |        large number of kernel threads may burden
+|    (        (       (        (    |        the performance of a system. 
+|     \        \       \        \   |        
+|      )        )       )        )  |        Linux, along with the family of Windows
+|     /        /       /        /   |        operating systems, implement the one-to-one
+|    (        (       (        (    |        model.
+|     \        \       \        \   |        
+|            kernel threads         |        
 +-----------------------------------+
 ```
 ```
+                                      Many-to-Many Model
 +-----------------------------------+
 |             user threads          |
-|     /        /       /        /   |
-|    (        (       (        (    |
-|     \        \       \        \   |
-|      )        )       )        )  |
-|     /        /       /        /   |
-|    (        (       (        (    |
-|     \        \       \        \   |
-|___________________________________|
+|     /        /       /        /   |        The many-to-many model multiplexes many
+|    (        (       (        (    |        user-level threads to a smaller or equal 
+|     \        \       \        \   |        number of kernel threads. The nuumber of 
+|      )        )       )        )  |        kernel threads may be specific to either
+|     /        /       /        /   |        a particular application or a particular
+|    (        (       (        (    |        machine (an application may be allocated
+|     \        \       \        \   |        more kernel threads on a system with eight
+|___________________________________|        processing cores than a system with 4 cores).
 |         ||       ||      ||       |
-|         \/       \/      \/       |
-|___________________________________|
-|                                   |
-|         /        /       /        |
+|         \/       \/      \/       |        Developers can create as many user threads 
+|___________________________________|        as necessary, and the corresponding kernel 
+|                                   |        threads can run in parallel on a 
+|         /        /       /        |        multiprocessor.
 |        (        (       (         |
-|         \        \       \        |
-|          )        )       )       |
-|         /        /       /        |
+|         \        \       \        |        When a thread performs a blocking system 
+|          )        )       )       |        call, the kernel can schedule another thread
+|         /        /       /        |        for execution.
 |        (        (       (         |
 |         \        \       \        |
 |            kernel threads         |
 +-----------------------------------+
+
+One variation on the many-to-many model still multiplexes many user-level threads to a smaller or equal number of kernel threads but also allows a user-level thread to be bound to a kernel thread. This variation is sometimes referred to as the two-level model.
 ```
