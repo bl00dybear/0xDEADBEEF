@@ -134,5 +134,7 @@ one model, and the many-to-many model.
 |            kernel threads         |
 +-----------------------------------+
 
-One variation on the many-to-many model still multiplexes many user-level threads to a smaller or equal number of kernel threads but also allows a user-level thread to be bound to a kernel thread. This variation is sometimes referred to as the two-level model.
+One variation on the many-to-many model still multiplexes many user-level threads to a 
+smaller or equal number of kernel threads but also allows a user-level thread to be bound
+to a kernel thread. This variation is sometimes referred to as the two-level model.
 ```
