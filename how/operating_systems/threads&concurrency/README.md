@@ -146,6 +146,42 @@ Before we proceed with our examples of thread creation, we introduce two general
 
 ```Synchronous threading``` occurs when the parent thread creates one or more children and then must wait for all of its children to terminate before it resumes. Here, the threads created by the parent perform work concurrently, but the parent cannot continue until this work has been completed. Once each thread has finished its work, it terminates and joins with its parent. Only after all of the children have joined can the parent resume execution. Typically, synchronous threading involves significant data sharing among threads. For example, the parent thread may combine the results calculated by its various children.
 
+```
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int sum; /* this data is shared by the thread(s) */
+void *runner(void *param); /* threads call this function */
+
+int main(int argc, char *argv[])
+{
+   pthread t tid; /* the thread identifier */
+   pthread attr t attr; /* set of thread attributes */
+   
+   /* set the default attributes of the thread */
+   pthread attr init(&attr);
+   
+   /* create the thread */
+   pthread create(&tid, &attr, runner, argv[1]);
+   
+   /* wait for the thread to exit */
+   pthread join(tid,NULL);
+
+   printf("sum = %d∖n",sum);
+}
+
+/* The thread will execute in this function */
+void *runner(void *param)
+{
+   int i, upper = atoi(param);
+   sum = 0;
+   for (i = 1; i <= upper; i++)
+      sum += i;
+}
+pthread exit(0);
+}
+```
 ### Implicit Threading
 
 Implicit threading is a technique where the runtime system automatically manages the creation, scheduling, and synchronization of threads, allowing the programmer to express parallelism without manually handling threads.
