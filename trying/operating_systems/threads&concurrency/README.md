@@ -1,6 +1,6 @@
 # Practice Exercises for Threads
     
-1. Provide three programming examples in which multithreading provides better performance than a single-threaded solution.
+### 1. Provide three programming examples in which multithreading provides better performance than a single-threaded solution.
 
 
     1.1. Web Server Handling Multiple Client Requests
@@ -22,7 +22,7 @@
     Multithreading Advantage: In parallel sorting (e.g., parallel merge sort or quicksort), the dataset can be divided into smaller parts, each sorted independently in separate threads. After sorting the parts, they are merged to produce the final sorted dataset. This approach can greatly reduce sorting time, especially on multi-core systems.
 
 
-2. Using Amdahl’s Law, calculate the speedup gain of an application that has a 60 percent parallel component for (a) two processing cores and (b) four processing cores.
+### 2. Using Amdahl’s Law, calculate the speedup gain of an application that has a 60 percent parallel component for (a) two processing cores and (b) four processing cores.
 
 3. Does the multithreaded web server described in Section 4.1 exhibit task or data parallelism?
 
