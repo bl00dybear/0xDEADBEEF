@@ -48,6 +48,16 @@ while (true) {
         /* consume the item in next consumed */
 ```
 
+These two processes running concurrently can result in a race condition. Let's consider that we start with the counter on the value 5. The concurrent execution of “counter++” and “counter--” is equivalent to a sequential execution in which the lower-level statements are interleaved in some arbitrary order (but the order within each high-level statement is preserved). One such interleaving is the following:
+```
+T0 :    producer        execute         register1 = counter             {r egister1 = 5}
+T1 :    producer        execute         register1 = register1 + 1       {r egister1 = 6}
+T2 :    consumer        execute         register2 = counter             {r egister2 = 5}
+T3 :    consumer        execute         r egister2 = r egister2 − 1     {r egister2 = 4}
+T4 :    producer        execute         counter = r egister1            {counter = 6}
+T5 :    consumer        execute         counter = r egister2            {counter = 4}
+```
+
 #### Kernel code (code implementing an operating system) is subject to several race conditions. 
 
 Consider as an example a ```kernel data structure``` that mentain a ```list of all open files in system```. This list must be modified when a new file is opened or closed (adding the file to the list or removing it from the list). If two processes were to open files simultaneously, the separate updates to this list could result in a race condition.
