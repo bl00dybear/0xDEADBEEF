@@ -57,6 +57,27 @@ T3 :    consumer        execute         r egister2 = r egister2 − 1     {r egi
 T4 :    producer        execute         counter = r egister1            {counter = 6}
 T5 :    consumer        execute         counter = r egister2            {counter = 4}
 ```
+Notice that we have arrived at the incorrect state “counter == 4”, indicating that four buffers are full, when, in fact, five buffers are full. If we reversed the order of the statements at T4 and T5 , we would arrive at the incorrect state “counter == 6”. We would arrive at this incorrect state because we allowed both processes to manipulate the variable counter concurrently.
+
+#### The Critical-Section Problem
+
+We begin our consideration of process synchronization by discussing the so-called critical-section problem. Consider a system consisting of n processes {P0 , P1 , ..., Pn−1 }. Each process has a segment of code, called a critical section, in which the process may be changing common variables, updating a table, writing a file, and so on. The important feature of the system is that, when one process is executing in its critical section, no other process is allowed to execute in its critical section. That is, no two processes are executing in their critical sections at the same time. The critical-section problem is to design a protocol that the processes can use to cooperate. Each process must request permission to enter its critical section. The section of code implementing this request is the entry section. The critical section may be followed by an exit section. The remaining code is the remainder section. The general structure of a typical process Pi is shown below:
+```
+do {
+        +---------------+
+        | entry section |
+        +---------------+
+
+                critical section
+        +--------------+
+        | exit section |
+        +--------------+
+
+                remainder section
+
+} while (true);
+```
+
 
 #### Kernel code (code implementing an operating system) is subject to several race conditions. 
 
