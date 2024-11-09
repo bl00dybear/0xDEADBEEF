@@ -30,7 +30,7 @@ while (true) {
         /* produce an item in next produced */
         while (counter == BUFFER SIZE)
                 ; /* do nothing */
-        }
+        
         buffer[in] = next produced;
         in = (in + 1) % BUFFER SIZE; //buffer is implementea as a circular array
         counter++;
@@ -44,8 +44,8 @@ while (true) {
         next consumed = buffer[out];
         out = (out + 1) % BUFFER SIZE;
         counter--;
-        }
         /* consume the item in next consumed */
+}
 ```
 
 These two processes running concurrently can result in a race condition. Let's consider that we start with the counter on the value 5. The concurrent execution of “counter++” and “counter--” is equivalent to a sequential execution in which the lower-level statements are interleaved in some arbitrary order (but the order within each high-level statement is preserved). One such interleaving is the following:
@@ -112,6 +112,38 @@ do {
 
 ### Synchronization Hardware
 
+Many modern computer systems therefore provide special hardware instructions that allow us either to test and modify the content of a word or to swap the contents of two words atomically—that is, as one uninterruptible unit. We can use these special instructions to solve the critical-section problem in a relatively simple manner. Rather than discussing one specific instruction for one specific machine, we abstract the main concepts behind these types of instructions by describing the test and set() and compare and swap() instructions.
+
+The test and set() instruction can be defined below:
+```
+boolean test and set(boolean *target) {
+    boolean rv = *target;
+    *target = true;
+    return rv;
+}
+```
+```
+do {
+    while (test and set(&lock))
+        ; /* do nothing */
+
+    /* critical section */
+    
+    lock = false;
+    /* remainder section */
+} while (true);
+```
+
+This code demonstrates a simple spinlock mechanism using the test_and_set function for mutual exclusion.
+
+test_and_set function: This function takes a pointer to a boolean variable (target) and performs an atomic operation. It saves the current value of *target in rv, sets *target to true (indicating the lock is acquired), and returns the original value. If *target was true, it means the lock was already held by another process.
+
+Main loop:
+
+The while (test_and_set(&lock)) loop continuously checks if the lock is available. If test_and_set returns true, the process waits; if it returns false, the lock is acquired.
+Critical Section: After obtaining the lock, the code enters the critical section, where it performs operations that require exclusive access.
+Release Lock: After the critical section, lock is set to false to release the lock, allowing other processes to enter the critical section.
+This process repeats indefinitely due to the outer do...while(true) loop.
 ```
 #include <stdio.h>
 #include <pthread.h>
