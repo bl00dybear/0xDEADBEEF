@@ -18,7 +18,7 @@ ______
 
 #### A cooperating process is one that can affect or be affected by other processes executing in the system. Cooperating processes can either directly share a logical address space (that is, both code and data) or be allowed to share data only through files or messages.
 
-Let’s consider an example of how this can happen.
+Let’s consider an example to highlight the need for process synchronization.
 
 A producer process produces information that is consumed by a consumer process. For example, a compiler may produce assembly code that is consumed by an assembler. The assembler, in turn, may produce object modules that are consumed by the loader. The producer–consumer problem also provides a useful metaphor for the client–server paradigm.
 
@@ -91,3 +91,81 @@ request is granted.
 Consider as an example a ```kernel data structure``` that mentain a ```list of all open files in system```. This list must be modified when a new file is opened or closed (adding the file to the list or removing it from the list). If two processes were to open files simultaneously, the separate updates to this list could result in a race condition.
 
 Other ```kernel data structures``` that are prone to possible race conditions include ```structures for maintaining memory allocation```, for maintaining process lists, and for interrupt handling. It is up to kernel developers to ensure that the operating system is free from such race condition.
+
+Two general approaches are used to handle critical sections in operating systems: ```preemptive kernels``` and ```nonpreemptive kernels```. A ```preemptive kernel``` allows a process to be preempted while it is running in kernel mode. A ```nonpreemptive kernel``` does not allow a process running in kernel mode to be preempted; a kernel-mode process will run until it exits kernel mode, blocks, or voluntarily yields control of the CPU.
+
+### Peterson's Solution
+Peterson’s solution is restricted to two processes that alternate execution between their critical sections and remainder sections. The processes are numbered P0 and P1 . For convenience, when presenting Pi , we use Pj to denote the other process; that is, ```j``` equals ```1 − i```.
+```
+do {
+        flag[i] = true;                 --+
+        turn = j;                         | entry section
+        while (flag[j] && turn == j);   --+
+        
+                critical section
+        
+        flag[i] = false;
+        
+        remainder section               | exit section
+} while (true);
+```
+
+### Synchronization Hardware
+
+```
+#include <stdio.h>
+#include <pthread.h>
+#include <stdatomic.h>
+
+// This flag will act as the lock indicator.
+// "volatile" tells the compiler that this variable can be changed by other threads at any time,
+// preventing optimizations that might interfere with correct operation.
+volatile int lock_flag = 0; // lock_flag initialized to 0 (unlocked state)
+
+// Lock function that implements the test-and-set behavior
+void lock() {
+    // __sync_lock_test_and_set() atomically sets lock_flag to 1 and returns the previous value of lock_flag.
+    // If the previous value was 1, it means the lock is held by another thread, so this thread must wait.
+    // The while loop repeatedly checks until the lock_flag is 0, allowing this thread to "acquire" the lock.
+    while (__sync_lock_test_and_set(&lock_flag, 1)) {
+        // Spin-wait (busy-waiting) until the lock becomes available.
+    }
+}
+
+// Unlock function to release the lock
+void unlock() {
+    // __sync_lock_release() sets lock_flag back to 0 (unlocked),
+    // allowing other threads to acquire the lock.
+    __sync_lock_release(&lock_flag);
+}
+
+// Shared resource that needs protection by the lock
+int shared_counter = 0;
+
+// Function executed by each thread to increment the shared_counter
+void* increment(void* arg) {
+    // Each thread will try to increment the counter 100,000 times.
+    for (int i = 0; i < 100000; ++i) {
+        lock();               // Acquire the lock before entering critical section
+        shared_counter++;     // Critical section: safely increment shared counter
+        unlock();             // Release the lock after leaving critical section
+    }
+    return NULL;
+}
+
+int main() {
+    pthread_t t1, t2; // Thread identifiers for two threads
+
+    // Create two threads, each running the increment function
+    pthread_create(&t1, NULL, increment, NULL);
+    pthread_create(&t2, NULL, increment, NULL);
+
+    // Wait for both threads to finish their execution
+    pthread_join(t1, NULL);
+    pthread_join(t2, NULL);
+
+    // Print the final value of the shared_counter
+    printf("Final counter value: %d\n", shared_counter);
+    return 0;
+}
+```
