@@ -116,7 +116,7 @@ Many modern computer systems therefore provide special hardware instructions tha
 
 #### The test and set() instruction can be defined below:
 ```c
-boolean test and set(boolean *target) {
+bool test_and_set(boolean *target) {
     boolean rv = *target;
     *target = true;
     return rv;
@@ -124,7 +124,7 @@ boolean test and set(boolean *target) {
 ```
 ```c
 do {
-    while (test and set(&lock))
+    while (test_and_set(&lock))
         ; /* do nothing */
 
     /* critical section */
@@ -258,6 +258,7 @@ do {
 ```
 
 ```c
+/*Here is a complete example*/
 #include <stdio.h>
 #include <pthread.h>
 #include <stdatomic.h>
@@ -343,11 +344,4 @@ int main() {
 
     return 0;
 }
-```
-```mermaid
-graph TD;
-    A-->B;
-    A-->C;
-    B-->D;
-    C-->D;
 ```
