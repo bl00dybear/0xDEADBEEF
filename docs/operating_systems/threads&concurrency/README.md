@@ -146,7 +146,7 @@ Before we proceed with our examples of thread creation, we introduce two general
 
 ```Synchronous threading``` occurs when the parent thread creates one or more children and then must wait for all of its children to terminate before it resumes. Here, the threads created by the parent perform work concurrently, but the parent cannot continue until this work has been completed. Once each thread has finished its work, it terminates and joins with its parent. Only after all of the children have joined can the parent resume execution. Typically, synchronous threading involves significant data sharing among threads. For example, the parent thread may combine the results calculated by its various children.
 
-```
+```c
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -197,7 +197,7 @@ Implicit threading is a technique where the runtime system automatically manages
 3. OpenMP
 
    OpenMP is a set of compiler directives as well as an API for programs written in C, C++, or FORTRAN that provides support for parallel programming in shared- memory environments. OpenMP identifies parallel regions as blocks of code that may run in parallel. Application developers insert compiler directives into their code at parallel regions, and these directives instruct the OpenMP run-time library to execute the region in parallel. The following C program illus- trates a compiler directive above the parallel region containing the printf() statement:
-   ```
+   ```c
    #include <omp.h>
    #include <stdio.h>
    int main(int argc, char *argv[])
@@ -213,7 +213,7 @@ Implicit threading is a technique where the runtime system automatically manages
    ```
    When OpenMP encounters the directive ```#pragma omp parallel``` it creates as many threads as there are processing cores in the system. Thus, for a dual-core system, two threads are created; for a quad-core system, four are created; and so forth. All the threads then simultaneously execute the parallel region. As each thread exits the parallel region, it is terminated.
 
-   ```
+   ```c
    #pragma omp parallel for
    //parallelizing for loop
    for (i = 0; i < N; i++) {
