@@ -136,15 +136,20 @@ do {
 
 This code demonstrates a simple spinlock mechanism using the test_and_set function for mutual exclusion.
 
-test_and_set function: This function takes a pointer to a boolean variable (target) and performs an atomic operation. It saves the current value of *target in rv, sets *target to true (indicating the lock is acquired), and returns the original value. If *target was true, it means the lock was already held by another process.
+```test_and_set``` function: This function takes a pointer to a boolean variable (target) and performs an atomic operation. It saves the current value of *target in rv, sets *target to true (indicating the lock is acquired), and returns the original value. If *target was true, it means the lock was already held by another process.
 
-Main loop:
+```Main loop```:
 
 The while (test_and_set(&lock)) loop continuously checks if the lock is available. If test_and_set returns true, the process waits; if it returns false, the lock is acquired.
-Critical Section: After obtaining the lock, the code enters the critical section, where it performs operations that require exclusive access.
-Release Lock: After the critical section, lock is set to false to release the lock, allowing other processes to enter the critical section.
-This process repeats indefinitely due to the outer do...while(true) loop.
+
+```Critical Section```: After obtaining the lock, the code enters the critical section, where it performs operations that require exclusive access.
+
+```Release Lock```: After the critical section, lock is set to false to release the lock, allowing other processes to enter the critical section.
+
+This process repeats indefinitely due to the outer ```do...while(true)``` loop.
 ```
+/*An example of Test nd set method in practice*/
+
 #include <stdio.h>
 #include <pthread.h>
 #include <stdatomic.h>
