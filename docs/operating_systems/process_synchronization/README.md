@@ -24,7 +24,7 @@ A producer process produces information that is consumed by a consumer process. 
 
 One solution to the producer–consumer problem uses shared memory. To allow producer and consumer processes to run concurrently, we must have available a buffer of items that can be filled by the producer and emptied by the consumer. Two types of buffers can be used. The ```unbounded buffer``` places no practical limit on the size of the buffer. The consumer may have to wait for new items, but the producer can always produce new items. The ```bounded buffer``` assumes a fixed buffer size. In this case, the consumer must wait if the buffer is empty, and the producer must wait if the buffer is full.
 
-```
+```c
 /               *Producer code*/
 while (true) {
         /* produce an item in next produced */
@@ -36,7 +36,7 @@ while (true) {
         counter++;
 }
 ```
-```
+```c
                 /*Consumer code*/
 while (true) {
         while (counter == 0)
@@ -62,7 +62,7 @@ Notice that we have arrived at the incorrect state “counter == 4”, indicatin
 #### The Critical-Section Problem
 
 We begin our consideration of process synchronization by discussing the so-called critical-section problem. Consider a system consisting of n processes {P0 , P1 , ..., Pn−1 }. Each process has a segment of code, called a critical section, in which the process may be changing common variables, updating a table, writing a file, and so on. The important feature of the system is that, when one process is executing in its critical section, no other process is allowed to execute in its critical section. That is, no two processes are executing in their critical sections at the same time. The critical-section problem is to design a protocol that the processes can use to cooperate. Each process must request permission to enter its critical section. The section of code implementing this request is the entry section. The critical section may be followed by an exit section. The remaining code is the remainder section. The general structure of a typical process Pi is shown below:
-```
+```c
 do {
         +---------------+
         | entry section |
@@ -96,7 +96,7 @@ Two general approaches are used to handle critical sections in operating systems
 
 ### Peterson's Solution
 Peterson’s solution is restricted to two processes that alternate execution between their critical sections and remainder sections. The processes are numbered P0 and P1 . For convenience, when presenting Pi , we use Pj to denote the other process; that is, ```j``` equals ```1 − i```.
-```
+```c
 do {
         flag[i] = true;                 --+
         turn = j;                         | entry section
@@ -114,15 +114,15 @@ do {
 
 Many modern computer systems therefore provide special hardware instructions that allow us either to test and modify the content of a word or to swap the contents of two words atomically—that is, as one uninterruptible unit. We can use these special instructions to solve the critical-section problem in a relatively simple manner. Rather than discussing one specific instruction for one specific machine, we abstract the main concepts behind these types of instructions by describing the test and set() and compare and swap() instructions.
 
-The test and set() instruction can be defined below:
-```
+#### The test and set() instruction can be defined below:
+```c
 boolean test and set(boolean *target) {
     boolean rv = *target;
     *target = true;
     return rv;
 }
 ```
-```
+```c
 do {
     while (test and set(&lock))
         ; /* do nothing */
@@ -147,7 +147,7 @@ The while (test_and_set(&lock)) loop continuously checks if the lock is availabl
 ```Release Lock```: After the critical section, lock is set to false to release the lock, allowing other processes to enter the critical section.
 
 This process repeats indefinitely due to the outer ```do...while(true)``` loop.
-```
+```c
 /*An example of Test nd set method in practice*/
 
 #include <stdio.h>
@@ -203,6 +203,144 @@ int main() {
 
     // Print the final value of the shared_counter
     printf("Final counter value: %d\n", shared_counter);
+    return 0;
+}
+```
+
+#### Compare and swap
+
+```c
+int compare and swap(int *value, int expected, int new value) {
+    int temp = *value;
+    if (*value == expected)
+        *value = new value;
+    return temp;
+}
+```
+
+```c
+do {
+    while (compare and swap(&lock, 0, 1) != 0)
+        ; /* do nothing */
+    
+    /* critical section */
+    lock = 0;
+    /* remainder section */
+} while (true);
+```
+
+### Another algotithm using Test and Set
+
+Although these algorithms satisfy the mutual-exclusion requirement, they do not satisfy the bounded-waiting requirement. We present another algorithm using the ```test and set()``` instruction that satisfies all the critical-section requirements. The common data structures are ```boolean waiting[n];``` ```boolean lock;``` initialized to ```false```.
+
+```c
+do {
+    waiting[i] = true;
+    key = true;
+    
+    while (waiting[i] && key)
+        key = test and set(&lock);
+    
+    waiting[i] = false;
+    
+    /* critical section */
+    
+    j = (i + 1) % n;
+    while ((j != i) && !waiting[j])
+        j = (j + 1) % n;
+    
+    if (j == i)
+        lock = false;
+    else
+        waiting[j] = false;
+    /* remainder section */
+} while (true);
+```
+
+```c
+#include <stdio.h>
+#include <pthread.h>
+#include <stdatomic.h>
+#include <stdbool.h>
+#include <unistd.h>
+
+#define NUM_THREADS 3
+
+// Global variables for the locking mechanism
+atomic_bool lock = false;         // Atomic lock variable
+bool waiting[NUM_THREADS] = {false};  // Array to track which threads are waiting
+
+// Atomic test-and-set function
+bool test_and_set(atomic_bool *target) {
+    // Atomically set *target to true and return the old value
+    return atomic_exchange(target, true);
+}
+
+// Function simulating the critical section
+void critical_section(int id) {
+    printf("Thread %d: Entering critical section\n", id);
+    sleep(1);  // Simulate work in the critical section
+    printf("Thread %d: Leaving critical section\n", id);
+}
+
+// Function executed by each thread
+void *thread_function(void *arg) {
+    int i = *(int *)arg;  // Thread's unique identifier
+
+    do {
+        // ** Entry Section: Begin trying to acquire the lock **
+
+        waiting[i] = true;  // Mark this thread as waiting
+        bool key = true;    // Start with key as true, indicating we want the lock
+
+        // Try to acquire the lock using test_and_set
+        while (waiting[i] && key) {
+            key = test_and_set(&lock);  // If lock is already true, keep spinning
+        }
+
+        waiting[i] = false;  // Thread has acquired the lock, mark as no longer waiting
+
+        // ** Critical Section **
+        critical_section(i);
+
+        // ** Exit Section: Release the lock and ensure fair handoff to waiting threads **
+
+        int j = (i + 1) % NUM_THREADS;  // Start checking the next thread in line
+        while ((j != i) && !waiting[j]) {
+            // Move to the next thread if it's not waiting
+            j = (j + 1) % NUM_THREADS;
+        }
+
+        if (j == i) {
+            // If no other threads are waiting, release the lock
+            lock = false;
+        } else {
+            // If a waiting thread is found, pass the lock to it
+            waiting[j] = false;
+        }
+
+        // ** Remainder Section: Do other work outside of critical section **
+        sleep(1);  // Simulate some non-critical work
+    } while (true);  // Continue indefinitely
+
+    return NULL;
+}
+
+int main() {
+    pthread_t threads[NUM_THREADS];
+    int thread_ids[NUM_THREADS];
+
+    // Create and start threads
+    for (int i = 0; i < NUM_THREADS; i++) {
+        thread_ids[i] = i;  // Assign an ID to each thread
+        pthread_create(&threads[i], NULL, thread_function, &thread_ids[i]);
+    }
+
+    // Wait for all threads to finish (for demonstration; here, they run indefinitely)
+    for (int i = 0; i < NUM_THREADS; i++) {
+        pthread_join(threads[i], NULL);
+    }
+
     return 0;
 }
 ```
