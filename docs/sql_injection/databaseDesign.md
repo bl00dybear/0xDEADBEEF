@@ -55,9 +55,9 @@
 - **Views**: Virtual tables created based on the result set of an SQL statement, which can simplify complex queries, aggregate data, or restrict access to specific data within the database.
 - **Materialised View**: A physical copy of the result set of a specific SQL query stored in the database. Unlike virtual views, which query the underlying tables every time they are accessed, materialised views are updated periodically.
 
-## ER (Entity Relationship) Diagram
+## ERD (Entity Relationship Diagram)
 
-An Entity-Relationship (ER) diagram is a graphical representation of entities and their relationships to each other. An ER diagram helps structure and organise data requirements before developing a database.
+An Entity-Relationship Diagram (ERD) is a graphical representation of entities and their relationships to each other. An ER diagram helps structure and organise data requirements before developing a database.
 
 **Components**
 
@@ -81,13 +81,7 @@ An Entity-Relationship (ER) diagram is a graphical representation of entities an
 - **Logical**: More detailed, including specific entities, relationships, and attributes but not entirely tied to a particular database management system (DBMS).
 - **Physical**: Includes all constraints, indexes, and specific technologies that will be implemented in the database.
 
-There a several ERD **notations**: Chen, Crow's Foot(Information Engineering), Barker's, IEC, Martin and etc. Each notation has its advantages and is chosen based on the preferences of the database designers, the complexity of the system being modelled, and the project's specific requirements. Crow's Foot and Chen's notations remain among the most popular.
-
-#### Chen notation
-
-![](img/db1/sd_db-notations_01.jpg)
-
-#### Crow's Foot / Information Engineering
+#### Crow's Foot notation
 
 ![](img/db1/sd_db-notations_02.jpg)
 
