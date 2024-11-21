@@ -55,7 +55,7 @@
     - [Fetch First](#fetch-first)
     - [Subqueries](#subqueries)
     - [Joins](#joins)
-      - [Inner Join](#inner-join)
+      - [Inner Join](#join)
       - [Left Join](#left-join)
       - [Right Join](#right-join)
       - [Full Outer Join](#full-outer-join)
@@ -104,17 +104,18 @@
   - [Modifying Sequences](#modifying-sequences)
   - [Dropping Sequences](#dropping-sequences)
 
-- [Views](#views)
-
-  - [Creating Views](#creating-views)
-  - [Updating Views](#updating-views)
-  - [Dropping Views](#dropping-views)
-
 - [Indexes](#indexes)
 
   - [Creating Indexes](#creating-indexes)
   - [Types of Indexes](#types-of-indexes)
   - [Dropping Indexes](#dropping-indexes)
+  - [Using Indexes in Queries](#using-indexes-in-queries)
+
+- [Views](#views)
+
+  - [Creating Views](#creating-views)
+  - [Updating Views](#updating-views)
+  - [Dropping Views](#dropping-views)
 
 ## **Introduction**
 
@@ -1481,49 +1482,6 @@ DROP SEQUENCE sequence_name;
 DROP SEQUENCE emp_id_seq;
 ```
 
-## **Views**
-
-A **View** is a virtual table in Oracle SQL that is based on the result of a SQL query. Views do not store data themselves; instead, they provide a dynamic way to access and display data from one or more tables.
-
-### **Creating Views**
-
-To create a view, use the `CREATE VIEW` statement. Views are commonly used to:
-
-- Simplify complex queries.
-- Provide an additional layer of security by restricting access to specific columns or rows.
-- Present data in a specific format for reporting or other purposes.
-
-**Syntax**:
-
-```sql
-CREATE OR REPLACE VIEW view_name AS
-SELECT column1, column2, ...
-FROM table_name
-WHERE condition;
-```
-
-### **Updating Views**
-
-Views cannot be directly updated if they involve complex queries like joins, group functions, or subqueries. However, you can update simple views that are directly mapped to underlying table columns.
-
-**Syntax for Simple Updates**:
-
-```sql
-UPDATE view_name
-SET column_name = value
-WHERE condition;
-```
-
-### **Dropping Views**
-
-To remove an existing view, use the `DROP VIEW` statement.
-
-**Syntax**:
-
-```sql
-DROP VIEW view_name;
-```
-
 ## **Indexes**
 
 An **Index** is a database object that improves the speed of data retrieval operations. Indexes are built on columns of a table and allow the database to locate rows efficiently without scanning the entire table.
@@ -1531,6 +1489,10 @@ An **Index** is a database object that improves the speed of data retrieval oper
 ### **Creating Indexes**
 
 Indexes can be created automatically by the database (e.g., for primary keys) or manually by the user.
+
+```sql
+CREATE OR REPLACE -- doesn't work here
+```
 
 **Syntax**:
 
@@ -1591,8 +1553,10 @@ Oracle supports several types of indexes to optimize query performance for diffe
    ```
 
 5. **Composite Index**
+
    - Built on multiple columns.
    - Useful for queries involving multiple conditions.
+
    ```sql
    CREATE INDEX idx_composite_example ON employees (department_id, job_id);
    ```
@@ -1605,6 +1569,127 @@ To remove an index, use the `DROP INDEX` statement. Dropping an index does not a
 
 ```sql
 DROP INDEX index_name;
+```
+
+---
+
+### **Using Indexes in Queries**
+
+Indexes are primarily used by the database to improve the speed of data retrieval operations. When a query is executed, the database can use the index to locate the rows that match the query criteria more efficiently than scanning the entire table.
+
+#### **How Indexes Help in Queries**
+
+- **Faster Lookup**: When querying on indexed columns, the database can use the index structure (like a B-tree) to directly locate rows instead of scanning all records. This is especially useful for large tables.
+- **Optimized Sorting**: If the query requires sorting, indexes on the relevant columns can speed up the process.
+- **Improved Join Performance**: Indexes on columns used in JOIN conditions allow the database to perform faster lookups during the join operation.
+
+#### **Examples of Queries Using Indexes**
+
+1. **Basic Query Using an Index**
+
+   If we have an index on the `last_name` column in the `employees` table, a query like:
+
+   ```sql
+   SELECT * FROM employees
+   WHERE last_name = 'Smith';
+   ```
+
+   The database will use the `idx_employee_lastname` index to quickly locate the rows where `last_name` is 'Smith', rather than scanning the entire table.
+
+2. **Range Queries with Indexes**
+
+   If we have an index on the `salary` column, queries that use ranges will benefit from the index.
+
+   ```sql
+   SELECT * FROM employees
+   WHERE salary BETWEEN 50000 AND 100000;
+   ```
+
+   The database will use the index to find employees within the specified salary range more efficiently.
+
+3. **Join Queries Using Indexed Columns**
+
+   If we have indexes on both `department_id` in the `employees` table and `department_id` in the `departments` table, a query like:
+
+   ```sql
+   SELECT e.first_name, e.last_name, d.department_name
+   FROM employees e
+   JOIN departments d ON e.department_id = d.department_id;
+   ```
+
+   The database will use the indexes to efficiently perform the join operation, reducing the time taken to match rows from the two tables.
+
+4. **Composite Index Usage**
+
+   If we have a composite index on `(department_id, job_id)` in the `employees` table, the following query will be optimized:
+
+   ```sql
+   SELECT * FROM employees
+   WHERE department_id = 10 AND job_id = 'Manager';
+   ```
+
+   The database can use the composite index to quickly find rows matching both conditions without scanning the table.
+
+5. **Avoiding Full Table Scans**
+
+   Without an index, queries that involve searching for specific values in a large table could result in a full table scan. With an index, the query is more efficient.
+
+   ```sql
+   SELECT * FROM employees
+   WHERE employee_id = 12345;
+   ```
+
+   If `employee_id` is indexed, the database can find the row for `employee_id = 12345` directly using the index, rather than scanning all employee records.
+
+### **Performance Considerations**
+
+- **Index Maintenance**: While indexes speed up read operations, they can slow down write operations (INSERT, UPDATE, DELETE) because the index needs to be updated whenever the table data changes.
+- **Index Selection**: It’s essential to index the right columns based on the queries you expect to run most frequently. Indexes on columns used in WHERE clauses, JOIN conditions, or ORDER BY clauses are typically the most beneficial.
+- **Avoiding Too Many Indexes**: Having too many indexes can negatively impact performance due to the overhead of maintaining them. It's best to index only the columns that significantly benefit query performance.
+
+---
+
+## **Views**
+
+A **View** is a virtual table in Oracle SQL that is based on the result of a SQL query. Views do not store data themselves; instead, they provide a dynamic way to access and display data from one or more tables.
+
+### **Creating Views**
+
+To create a view, use the `CREATE VIEW` statement. Views are commonly used to:
+
+- Simplify complex queries.
+- Provide an additional layer of security by restricting access to specific columns or rows.
+- Present data in a specific format for reporting or other purposes.
+
+**Syntax**:
+
+```sql
+CREATE OR REPLACE VIEW view_name AS
+SELECT column1, column2, ...
+FROM table_name
+WHERE condition;
+```
+
+### **Updating Views**
+
+Views cannot be directly updated if they involve complex queries like joins, group functions, or subqueries. However, you can update simple views that are directly mapped to underlying table columns.
+
+**Syntax for Simple Updates**:
+
+```sql
+UPDATE view_name
+SET column_name = value
+WHERE condition;
+```
+
+### **Dropping Views**
+
+To remove an existing view, use the `DROP VIEW` statement.
+
+**Syntax**:
+
+```sql
+DROP VIEW view_name;
 ```
 
 ---
