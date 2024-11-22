@@ -43,6 +43,14 @@
 
 - [Composite Data Types in PL/SQL](#composite-data-types-in-plsql)
 
+  - [1. `RECORD` Data Type](#1-record-data-type)
+  - [2. Indexed Tables (Index-By Tables)](#2-indexed-tables-index-by-tables)
+  - [3. Nested Tables](#3-nested-tables)
+  - [4. Varrays (Variable-Size Arrays)](#4-varrays-variable-size-arrays)
+  - [5. Collection Methods in PL/SQL](#5-collection-methods-in-plsql)
+
+- [Cursors](#cursors)
+
 - [Procedures](#procedures)
 
   - [Creating Procedures](#creating-procedures)
@@ -534,6 +542,119 @@ collection_name.method_name([parameters])
   - `TRIM(n)`: Removes the last `n` elements.
 
 **Note:** The `EXISTS` method is the only one that can be used on a `NULL` collection.
+
+## **Cursors**
+
+Cursors are pointers to the context area created by Oracle for processing SQL statements. They allow developers to fetch and manipulate rows returned by a query.
+
+### **Types of Cursors**
+
+PL/SQL supports two types of cursors:
+
+1. **Implicit Cursors**: Automatically created by Oracle when executing DML or SELECT INTO statements.
+2. **Explicit Cursors**: Defined by the programmer to provide more control over query results.
+
+---
+
+### **Implicit Cursors**
+
+Oracle automatically manages implicit cursors. These cursors are created for statements like INSERT, UPDATE, DELETE, or SELECT INTO.
+
+**Attributes of Implicit Cursors**
+
+Implicit cursors can be referenced using the SQL cursor, which has the following attributes:
+
+| Attribute   | Description                                                                  |
+| ----------- | ---------------------------------------------------------------------------- |
+| `%FOUND`    | Returns `TRUE` if a DML or SELECT INTO statement affected one or more rows.  |
+| `%NOTFOUND` | Returns `TRUE` if no rows were affected or retrieved.                        |
+| `%ISOPEN`   | Always returns `FALSE` because Oracle closes implicit cursors automatically. |
+| `%ROWCOUNT` | Returns the number of rows affected or retrieved.                            |
+
+#### **Example of Implicit Cursors**
+
+Using SQL%ROWCOUNT to check rows affected by an update:
+
+```sql
+DECLARE
+   total_rows NUMBER(2);
+BEGIN
+   UPDATE customers
+   SET salary = salary + 500;
+
+   IF sql%notfound THEN
+      dbms_output.put_line('No customers selected');
+   ELSIF sql%found THEN
+      total_rows := sql%rowcount;
+      dbms_output.put_line(total_rows || ' customers selected');
+   END IF;
+END;
+/
+```
+
+**Output:**
+
+```
+6 customers selected
+PL/SQL procedure successfully completed.
+```
+
+### **Explicit Cursors**
+
+Explicit cursors allow more control and are defined in the declaration section of a PL/SQL block. They must be manually opened, fetched, and closed.
+
+#### **Steps to Use Explicit Cursors**
+
+1. **Declare the Cursor**: Define a SELECT statement for the cursor.
+   ```sql
+   CURSOR cursor_name IS SELECT_statement;
+   ```
+2. **Open the Cursor**: Allocate memory and associate it with the cursor.
+   ```sql
+   OPEN cursor_name;
+   ```
+3. **Fetch the Cursor**: Retrieve rows one at a time.
+   ```sql
+   FETCH cursor_name INTO variables;
+   ```
+4. **Close the Cursor**: Release the memory associated with the cursor.
+   ```sql
+   CLOSE cursor_name;
+   ```
+
+#### **Example of Explicit Cursors**
+
+```sql
+DECLARE
+   c_id customers.id%TYPE;
+   c_name customers.name%TYPE;
+   c_addr customers.address%TYPE;
+   CURSOR c_customers IS
+      SELECT id, name, address FROM customers;
+BEGIN
+   OPEN c_customers;
+   LOOP
+      FETCH c_customers INTO c_id, c_name, c_addr;
+      EXIT WHEN c_customers%notfound;
+      dbms_output.put_line(c_id || ' ' || c_name || ' ' || c_addr);
+   END LOOP;
+   CLOSE c_customers;
+END;
+/
+```
+
+**Output:**
+
+```
+1 Ramesh Ahmedabad
+2 Khilan Delhi
+3 Kaushik Kota
+4 Chaitali Mumbai
+5 Hardik Bhopal
+6 Komal MP
+
+PL/SQL procedure successfully completed.
+```
 
 ## **Procedures**
 
