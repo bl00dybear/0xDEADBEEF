@@ -607,17 +607,24 @@ Explicit cursors allow more control and are defined in the declaration section o
 
 1. **Declare the Cursor**: Define a SELECT statement for the cursor.
    ```sql
-   CURSOR cursor_name IS SELECT_statement;
+   CURSOR cursor_name [(parameter data_type, ..)] IS SELECT_statement;
    ```
 2. **Open the Cursor**: Allocate memory and associate it with the cursor.
    ```sql
-   OPEN cursor_name;
+   OPEN cursor_name [(parameter, ..)];
    ```
 3. **Fetch the Cursor**: Retrieve rows one at a time.
    ```sql
-   FETCH cursor_name INTO variables;
+   FETCH cursor_name INTO variable1, variable2, ..;
    ```
-4. **Close the Cursor**: Release the memory associated with the cursor.
+4. **Verify the cursor**: Verify with `%FOUND` and `%NOTFOUND`. These attributes help in determining if the fetch operation was successful.
+
+   ```sql
+   cursor_name%NOTFOUND = TRUE -- if none of the rows were processed
+   cursor_name%FOUND = TRUE -- if at least one row was processed
+   ```
+
+5. **Close the Cursor**: Release the memory associated with the cursor.
    ```sql
    CLOSE cursor_name;
    ```
